@@ -1,0 +1,938 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session explorer · Universe &amp; AI Engineer</title>
+<meta name="description" content="Discover talks from GitHub Universe and AI Engineer by shared learning topic. Keep sources distinct, watch public recordings and track what you've seen.">
+<meta property="og:title" content="Session explorer · Universe &amp; AI Engineer">
+<meta property="og:description" content="Follow your interests across coding agents, context, evaluations, models and more. Original sources, public recordings and browser-local watch history.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:,">
+<style>
+:root{
+  --paper:#f5f4ef;--ink:#1f2328;--muted:#59636e;--rule:#d1d9e0;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,"Cascadia Code","SF Mono",Consolas,monospace;
+  --serif:"Instrument Serif",Georgia,"Times New Roman",serif;
+  --accent:#bf4520;--link:#2e5aa8;--tile-ink:#1f2328;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){:root{--paper:#0d1117;--ink:#e6edf3;--muted:#8d96a0;--rule:#30363d;--accent:#f08a59;--link:#739fdf}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.5 var(--sans)}
+main{max-width:1320px;margin:0 auto;padding:24px 20px 20px}
+footer{max-width:1320px;margin:0 auto;padding:16px 20px 32px;border-top:1px solid var(--rule);font:11px/1.6 var(--mono);color:var(--muted)}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--mono)}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+h1{margin:2px 0 0;font:400 34px/1.1 var(--serif);letter-spacing:-.01em}
+.top-meta{margin:0;font:11px var(--mono);color:var(--muted)}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tab{font:600 12px var(--sans);color:var(--muted);background:transparent;border:1px solid var(--rule);border-radius:6px;padding:5px 10px;cursor:pointer}
+.tab[aria-pressed=true]{color:var(--paper);background:var(--ink);border-color:var(--ink)}
+.note{margin:0;font:11px var(--mono);color:var(--muted)}
+.tree{position:relative;height:360px;border-radius:8px;overflow:hidden}
+@media (max-width:640px){.tree{height:520px}}
+.tile{position:absolute;border:2px solid var(--paper);border-radius:8px;padding:8px 10px;margin:0;color:var(--tile-ink);text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;font:inherit}
+.tile:hover{filter:brightness(1.05)}
+.tile.is-dim{opacity:.42}
+.tile.is-selected{outline:2px solid var(--tile-ink);outline-offset:-6px}
+.tile:focus-visible{outline:2px solid var(--accent);outline-offset:-6px}
+.t-label{font:600 12px/1.2 var(--sans);overflow-wrap:anywhere}
+.t-count{font:600 22px/1 var(--mono);letter-spacing:-.04em}
+.tile.is-small{padding:5px 6px}.tile.is-small .t-label{font-size:10px}.tile.is-small .t-count{font-size:14px}
+.tile.is-tiny{padding:3px 4px;gap:3px}.tile.is-tiny .t-label{font-size:10px}
+.tile.is-short{flex-direction:row;align-items:center;gap:4px}
+.tile.is-short .t-label{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.tile.is-short .t-count{flex:none}
+.detail{display:grid;gap:12px;margin-top:20px;padding-top:18px;border-top:1px solid var(--rule)}
+.detail>*{min-width:0}
+@media (min-width:1240px){.detail.has-selection{grid-template-columns:minmax(760px,1fr) minmax(0,1fr);gap:20px}.has-selection .list{max-height:760px;overflow:auto;padding-right:4px}}
+.head{display:grid;gap:6px;max-width:760px}
+.head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+h2{margin:0;font:600 20px/1.2 var(--sans)}
+.stats{margin:0;font:11px var(--mono);color:var(--muted)}
+.clear{font:600 11px var(--sans);color:var(--muted);background:transparent;border:1px solid var(--rule);border-radius:6px;padding:4px 8px;cursor:pointer;white-space:nowrap}
+.hint{margin:4px 0 0;font:13px/1.5 var(--sans);color:var(--muted)}
+.matrix-wrap{overflow-x:auto;margin-top:12px}
+#focus-matrix{display:block;width:100%;min-width:760px;max-width:760px;height:auto}
+.sk-cell{cursor:pointer}
+.sk-cell:hover .cell-bg{stroke:var(--ink);stroke-width:1.5}
+.sk-cell:focus{outline:none}
+.sk-cell:focus-visible .cell-bg{stroke:var(--accent);stroke-width:2}
+.sk-cell[aria-pressed=true] .cell-bg{stroke:var(--accent);stroke-width:2}
+.matrix-note{font:italic 400 13px var(--serif);fill:var(--muted)}
+.player-dialog{width:min(900px,calc(100vw - 32px));max-width:900px;padding:16px;background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:8px}
+.player-dialog::backdrop{background:rgba(0,0,0,.68)}
+.player-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.player-header h2{margin:2px 0 0;font:600 18px/1.3 var(--sans)}
+.player-close{font:600 12px var(--sans);color:var(--muted);background:transparent;border:1px solid var(--rule);border-radius:6px;padding:5px 9px;cursor:pointer}
+.player-frame{aspect-ratio:16/9;background:#000}
+.player-frame iframe{display:block;width:100%;height:100%;border:0}
+.player-note{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:8px 0 0;font:11px var(--mono);color:var(--muted)}
+.tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:16px 0}
+.search-label{font:600 12px var(--sans)}
+.tools input[type=search]{flex:1 1 200px;min-width:0;font:13px var(--sans);color:var(--ink);background:transparent;border:1px solid var(--rule);border-radius:6px;padding:6px 9px}
+.toggle{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);cursor:pointer}
+.chip{font:600 11px var(--sans);color:var(--accent);background:transparent;border:1px solid var(--accent);border-radius:6px;padding:3px 8px;cursor:pointer}
+.chip[aria-pressed=true]{color:var(--paper);background:var(--accent)}
+.recording-open{border:0;padding:0;background:none;text-align:left;font:inherit;cursor:pointer}
+.watched-at{font:10px var(--mono);color:var(--accent)}
+.watch-toggle{font:10px var(--mono);color:var(--muted);background:transparent;border:0;padding:0;cursor:pointer}
+.watch-toggle:hover{color:var(--accent);text-decoration:underline}
+.history-status{font:10px var(--mono);color:var(--muted)}
+.session-insight{margin-top:5px;font-size:12px}
+.session-insight summary{color:var(--link);cursor:pointer;font-weight:600}
+.session-insight p{margin:5px 0 0;color:var(--muted)}
+.session-insight strong{color:var(--ink)}
+.insight-source{margin:0 0 5px;font:10px var(--mono);color:var(--muted)}
+.list-count{margin:0 0 4px;font:11px var(--mono);color:var(--muted)}
+.rows{list-style:none;margin:0;padding:0}
+.row{display:grid;grid-template-columns:76px minmax(0,1fr);gap:2px 10px;padding:9px 0;border-top:1px solid var(--rule)}
+.code{grid-row:1;font:11px/1.9 var(--mono);color:var(--muted)}
+.row>:not(.code){grid-column:2}
+.row-top{display:flex;gap:10px;align-items:baseline;justify-content:space-between}
+.title{font-weight:600;color:var(--ink)}
+.rec{flex:none;font:11px var(--mono);color:var(--muted);white-space:nowrap}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.meta{margin:0;font-size:12px;color:var(--muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:0;background:var(--c)}
+.empty{padding:16px 0;color:var(--muted)}
+.source-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0 6px}
+.source-tools label{display:flex;align-items:center;gap:6px;font-size:12px}
+.source-tools select{font:inherit;background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:6px;padding:5px 8px;max-width:100%}
+.source-breakdown{margin:0 0 12px;color:var(--muted);font-size:12px}
+.source-tag{font-weight:600;color:var(--ink)}
+.access-note,.mapping-note{color:var(--muted);font-size:11px}
+.topic-links{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:5px}
+.topic-link{border:0;background:none;color:var(--link);font:inherit;font-size:11px;padding:0;cursor:pointer;text-align:left}
+.topic-link:hover{text-decoration:underline}
+.mapping-evidence{margin-top:5px;font-size:12px;color:var(--muted)}
+.mapping-evidence summary{cursor:pointer;color:var(--link)}
+.mapping-evidence p{margin:5px 0}
+.mapping-evidence ul{margin:6px 0;padding-left:18px}
+.show-more{margin:14px 0;padding:7px 12px}
+.coverage{margin-top:12px;max-width:85ch;font:12px/1.6 var(--sans)}
+.coverage summary{cursor:pointer;color:var(--ink)}
+.tree-empty{padding:20px;color:var(--muted)}
+.topic-overflow{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:8px}
+.topic-overflow:empty{display:none}
+.topic-overflow-label{flex-basis:100%;margin:0;color:var(--muted);font-size:11px}
+.topic-extra{display:flex;gap:8px;align-items:baseline;border:0;border-bottom:1px solid var(--rule);padding:4px 0;background:none;color:var(--ink);font:12px var(--sans);text-align:left;cursor:pointer}
+.topic-extra[aria-pressed=true]{color:var(--accent);border-color:var(--accent)}
+.topic-extra .t-count{font:600 12px var(--mono)}
+.watchlists{margin-block:20px 24px}.watchlists h2{margin-bottom:8px}.audience-section{border-top:1px solid var(--rule)}.audience-section:last-child{border-bottom:1px solid var(--rule)}
+.audience-section h3{margin:0}.guide-toggle{display:grid;grid-template-columns:minmax(155px,1fr) minmax(200px,2fr) auto 1em;align-items:baseline;gap:12px;width:100%;padding:12px 4px;background:none;border:0;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.guide-toggle strong{font-size:16px}.guide-toggle .purpose{font:14px var(--sans);color:var(--muted)}.guide-toggle .stats{white-space:nowrap}.guide-toggle::after{content:"＋";color:var(--link)}.guide-toggle[aria-expanded=true]::after{content:"−"}.guide-toggle:hover strong,.guide-toggle[aria-expanded=true] strong{color:var(--link)}
+.guide-panel{padding:0 4px 16px;max-width:960px}.guide-chapter{border-top:1px solid var(--rule)}.guide-chapter>summary{cursor:pointer;padding:10px 0;font-weight:650}.guide-chapter>summary .stats{margin-left:8px;font-weight:400}
+.guide-chapter ol{list-style:none;padding:0 0 0 20px;margin:0;max-width:78ch}.guide-pick{border-top:1px solid var(--rule);padding:12px 0 16px}
+.guide-pick h4{margin:4px 0 8px;font-size:16px;line-height:1.35}.guide-pick dl{margin:0}.guide-pick dl div{margin:3px 0}.guide-pick dt,.guide-pick dd{display:inline;margin:0}.guide-pick dt{font-weight:650;margin-right:5px}
+.guide-actions,.guide-related{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 16px;margin-top:8px}
+.guide-actions .recording-open{color:var(--link);font-weight:650}.guide-related{border-top:1px solid var(--rule);padding-top:12px}
+.guide-provenance{margin:0 0 10px;color:var(--muted);font-size:12px}
+@media(max-width:700px){.guide-toggle{grid-template-columns:1fr auto 1em;gap:4px 8px}.guide-toggle .purpose{grid-column:1/-1;grid-row:2}.guide-toggle::after{grid-column:3;grid-row:1}.guide-chapter ol{padding-left:6px}}
+@media(max-width:640px){.row-top{flex-wrap:wrap;gap:4px}.row{grid-template-columns:64px minmax(0,1fr)}.source-tools{align-items:flex-start}}
+[hidden]{display:none!important}
+.kg{border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.kg-header,.kg-controls{display:flex;align-items:end;flex-wrap:wrap;gap:8px 18px;padding:14px 18px}
+.kg-header{justify-content:space-between;align-items:center;padding-bottom:0}
+.kg-header h2{font:400 28px/1.1 var(--serif)}.kg-header p{margin:5px 0 0;color:var(--muted)}
+.kg-controls label{display:grid;gap:3px;font-size:12px;font-weight:600;max-width:100%}
+.kg-controls select{max-width:100%;font:13px var(--sans);padding:6px;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px}
+.kg-controls select:disabled{color:var(--muted)}
+.kg-figures{display:grid;background:#121c24;color:#eaf1f5}
+.kg-main{min-width:0;padding:8px 12px 14px}
+.kg-panel{background:#0f181f;border-top:1px solid #2f3f4b}
+.kg-panel-in{padding:16px 18px 20px}
+@media(min-width:1000px){.kg-figures{grid-template-columns:minmax(0,1fr) 330px}.kg-panel{position:relative;border-top:0;border-left:1px solid #2f3f4b}.kg-panel-in{position:absolute;inset:0;overflow:auto;overscroll-behavior:contain}}
+.kg-bar{display:flex;align-items:center;gap:12px;margin:0 0 4px}
+.kg-tools{display:flex;gap:2px;padding:2px;border:1px solid #2f3f4b;border-radius:6px}
+.kg-tools button{display:grid;place-items:center;width:32px;height:32px;border:0;border-radius:4px;background:none;color:#eaf1f5;cursor:pointer}
+.kg-tools button:hover:not(:disabled){background:#24394a}.kg-tools button:disabled{color:#4f606b;cursor:default}
+.kg-tools svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.kg-status{font:12px var(--mono);color:#a9b8c1;font-variant-numeric:tabular-nums}
+.kg-stage{position:relative}
+.kg-empty{margin:0;padding:24px 8px;color:#c5d0d6}
+.kg-net{display:block;width:100%;height:clamp(420px,66vh,680px);touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.kg-net.is-narrow{height:min(78vh,720px)}.kg-net.is-zoomed{cursor:grab}
+@media(pointer:coarse){.kg-net.is-narrow{height:auto}}
+.kg-canvas.is-dragging,.kg-canvas.is-dragging *{cursor:grabbing!important}
+.kg-edge{fill:none;stroke-linecap:round;transition:opacity .2s;vector-effect:non-scaling-stroke}.kg-spoke{stroke-width:1;stroke-opacity:.5}
+.kg-link{fill:none;stroke:transparent;stroke-width:12px;vector-effect:non-scaling-stroke;pointer-events:stroke;cursor:pointer}
+.kg-node{cursor:pointer;outline:none;transition:opacity .2s}.kg-target{fill:transparent}
+.kg-node:focus-visible .kg-target{stroke:#fff;stroke-width:1.5}.kg-node:hover .kg-label{text-decoration:underline}
+.kg-ring{fill:none;stroke:#f4f8fa;stroke-width:1.5}
+.kg-label{font:600 12px var(--sans);fill:#eaf1f5;paint-order:stroke;stroke:#121c24;stroke-width:4px;stroke-linejoin:round}
+.kg-label tspan,.kg-sublabel tspan{font:400 10.5px var(--mono);fill:#a9b8c1}
+.kg-sublabel{font:10.5px var(--sans);fill:#b8c6ce;paint-order:stroke;stroke:#121c24;stroke-width:3px;stroke-linejoin:round}
+.kg-net.is-narrow .kg-sublabel{display:none}
+.kg-net.has-focus :is(.kg-edge,.kg-node):not(.is-near){opacity:.12}
+.kg-net:not(.has-focus).has-hover :is(.kg-edge,.kg-node):not(.is-lit){opacity:.14}
+.kg-net.has-hover :is(.kg-edge,.kg-node).is-lit{opacity:1}
+.kg-net.has-hover .kg-edge.is-lit:not(.kg-spoke){stroke-opacity:.95}
+.kg-edge.is-peer{stroke:#f4f8fa;stroke-opacity:.95}
+.kg-legend{display:flex;flex-wrap:wrap;gap:4px 16px;margin:6px 6px 0;font-size:12px;color:#c5d0d6}
+:is(.kg-legend,.kg-chips,.kg-p-pairs) i,.kg-p-head>i{display:inline-block;flex:none;width:8px;height:8px;border-radius:50%;background:var(--c);margin-right:6px}
+.kg-p-head{display:flex;align-items:flex-start;gap:4px}.kg-p-head>i{width:11px;height:11px;margin-top:8px}
+.kg-p-head h3{margin:0;font:400 23px/1.2 var(--serif);color:#f4f8fa}.kg-p-head p{margin:4px 0 0;font-size:12px;color:#a9b8c1}
+.kg-p-scope{margin:12px 0 0;font-size:12.5px;line-height:1.5;color:#c5d0d6}.kg-p-scope b{color:#f4f8fa;font-weight:600}
+.kg-p-sec{margin-top:16px;padding-top:12px;border-top:1px solid #2f3f4b}
+.kg-p-sec h4{margin:0 0 9px;font:600 13px/1.4 var(--sans);color:#eaf1f5}.kg-p-sec h4 span{margin-left:6px;font:400 11px var(--mono);color:#a9b8c1}
+.kg-p-list{list-style:none;margin:0;padding:0;display:grid;gap:11px}.kg-p-list li{display:grid;gap:2px}
+.kg-p-list :is(button,a){color:#eaf1f5;font:500 13px/1.35 var(--sans);text-decoration:none}.kg-p-list :is(button,a):hover{text-decoration:underline}
+.kg-p-list button span{color:#91daca}.kg-p-list li>span{font-size:11.5px;color:#a9b8c1}
+.kg-chips{display:flex;flex-wrap:wrap;gap:6px}
+:is(.kg-chips button,.kg-p-clear,.kg-all){display:inline-flex;align-items:center;gap:2px;border:1px solid #3d4f5c;border-radius:6px;background:none;color:#eaf1f5;font:12px var(--sans);padding:4px 8px;cursor:pointer}
+.kg-chips button b{margin-left:6px;font:600 11px var(--mono);color:#a9b8c1}
+:is(.kg-chips button,.kg-p-clear,.kg-all):hover,.kg-chips button[aria-pressed=true]{background:#24394a;border-color:#c5d0d6}
+.kg-all{margin-top:12px}.kg-p-sec>.kg-p-clear{margin-top:10px}.kg-p-scope .kg-p-clear{margin-left:4px;padding:1px 7px}
+.kg-p-pairs{list-style:none;margin:0 -8px;padding:0}
+.kg-p-pairs button{display:flex;align-items:center;gap:2px;width:100%;padding:6px 8px;border:0;border-radius:4px;background:none;color:#eaf1f5;font:12.5px var(--sans);text-align:left;cursor:pointer}
+.kg-p-pairs button:hover{background:#24394a}.kg-p-pairs span{margin:0 7px 0 3px;color:#6f818c}.kg-p-pairs b{margin-left:auto;padding-left:10px;font:600 11px var(--mono);color:#a9b8c1}
+.kg-p-help ul{display:grid;gap:6px;margin:0;padding-left:16px;font-size:12px;line-height:1.5;color:#c5d0d6}
+.kg-p-help kbd{font:11px var(--mono);padding:0 4px;border:1px solid #3d4f5c;border-radius:3px;background:#1b2731;color:#eaf1f5}
+.kg-p-none{margin:0;font-size:12px;color:#c5d0d6}
+.kg-figures :is(button,a):focus-visible{outline:2px solid #f4f8fa;outline-offset:2px}.kg-tools button:focus-visible{outline-offset:-2px}
+.kg-caption{margin:0;padding:10px 18px;font-size:12px;color:var(--muted)}
+.kg-hit{margin:4px 0 0;font-size:12px;color:var(--ink)}
+@media(max-width:760px){.kg-controls{gap:8px}.kg-controls label:first-child{width:100%}.kg-controls label{min-width:0}.kg-main{padding-inline:4px}.kg-controls select{width:100%}}
+</style>
+</head>
+<body>
+<main>
+<header class="top">
+  <h1>Find your next session</h1>
+  <p class="top-meta"><span id="totals"></span></p>
+</header>
+
+<div id="catalog-view">
+<section class="watchlists" aria-labelledby="watchlist-title">
+  <h2 id="watchlist-title">Audience watchlists</h2>
+  <div id="guide"></div>
+</section>
+<div class="source-tools">
+  <label for="source">Source <select id="source"><option value="all">All sources</option><option value="universe">GitHub Universe 2026</option><option value="ai-engineer">AI Engineer</option></select></label>
+  <label for="year">Year <select id="year"><option value="">All years</option></select></label>
+  <label class="toggle"><input id="review-only" type="checkbox"> Needs topic review</label>
+</div>
+<p class="source-breakdown" id="source-breakdown"></p>
+<div class="tools">
+  <label class="search-label" for="q">Find a session</label>
+  <input id="q" type="search" placeholder="Try agents, security or MCP">
+  <label class="toggle"><input id="rec" type="checkbox"> Public recordings only</label>
+  <button class="chip" id="history-toggle" type="button" aria-pressed="false">Watch history · 0</button>
+  <span class="history-status" id="history-status" role="status" aria-live="polite"></span>
+</div>
+<section aria-label="Browse sessions by interest">
+  <div class="bar">
+    <div class="tabs" role="group" aria-label="Browse views" id="tabs"></div>
+    <p class="note" id="tree-note"></p>
+  </div>
+  <div class="tree" id="tree"></div>
+  <div class="topic-overflow" id="topic-overflow"></div>
+  <section class="kg" id="kg" hidden aria-labelledby="kg-title">
+    <div class="kg-header"><div><h2 id="kg-title"></h2><p id="kg-intro"></p></div><button id="kg-reset" type="button" class="clear">Back to all topics</button></div>
+    <div class="kg-controls">
+      <label>Topic<select id="kg-topic"></select></label>
+      <label>Subtopic<select id="kg-sub"></select></label>
+      <label>Related topic<select id="kg-peer"></select></label>
+    </div>
+    <div class="kg-figures" id="kg-figures">
+      <div class="kg-main" id="kg-main">
+        <div class="kg-bar">
+          <div class="kg-tools" role="toolbar" aria-label="Graph view">
+            <button type="button" data-kg-view="in" aria-label="Zoom in" title="Zoom in (+)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+            <button type="button" data-kg-view="out" aria-label="Zoom out" title="Zoom out (−)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+            <button type="button" data-kg-view="fit" aria-label="Fit whole graph" title="Fit whole graph (0)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button>
+            <button type="button" data-kg-view="focus" aria-label="Zoom to selected topic" title="Zoom to selected topic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
+            <button type="button" data-kg-view="layout" aria-label="Restore layout" title="Put dragged topics back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5"/></svg></button>
+          </div>
+          <span class="kg-status" id="kg-status"></span>
+        </div>
+        <div class="kg-stage"><div class="kg-canvas" id="kg-canvas"></div></div>
+        <p class="kg-legend" id="kg-legend"></p>
+      </div>
+      <aside class="kg-panel" id="kg-panel" aria-labelledby="kg-panel-title"><div class="kg-panel-in" id="kg-panel-in"></div></aside>
+    </div>
+    <p class="kg-caption" id="kg-caption"></p>
+  </section>
+</section>
+
+<section class="detail" id="detail">
+  <div class="story">
+    <div class="head" id="head"></div>
+    <div class="matrix-wrap" id="matrix-wrap" hidden><svg id="focus-matrix" viewBox="0 0 760 388" role="group" aria-labelledby="u26-matrix-title u26-matrix-desc"></svg></div>
+  </div>
+  <div class="list">
+    <div id="sub-chip"></div>
+    <p class="insight-source">Universe takeaways summarize catalog descriptions. AI Engineer topic matches use descriptions and playlists, not transcripts.</p>
+    <p class="list-count" id="list-count" aria-live="polite"></p>
+    <ol class="rows" id="rows"></ol>
+    <button class="clear show-more" id="show-more" type="button" hidden>Show more sessions</button>
+  </div>
+</section>
+</div>
+</main>
+<dialog class="player-dialog" id="player-dialog" aria-labelledby="player-title">
+  <div class="player-header">
+    <h2 id="player-title"></h2>
+    <button class="player-close" id="player-close" type="button">Close</button>
+  </div>
+  <div class="player-frame"><div id="yt-player"></div></div>
+  <p class="player-note" id="player-note" role="status" aria-live="polite"><span>Playback is marked watched after half the video is played; seeking does not count.</span><a id="player-youtube" target="_blank" rel="noopener noreferrer">Open on YouTube ↗</a></p>
+</dialog>
+<footer>
+  Original titles and recordings link to their owners. Shared topics are editorial, not event tracks or recommendations.
+  <a id="catalog" target="_blank" rel="noopener noreferrer">Universe catalog (sign-in) ↗</a> ·
+  <a href="https://www.youtube.com/@aiDotEngineer" target="_blank" rel="noopener noreferrer">AI Engineer ↗</a>
+  <details class="coverage"><summary>About sources, access &amp; topic mapping</summary>
+    <p id="coverage"></p>
+    <p>AI Engineer includes public talks and workshops across all years. Shorts, promotional clips and multi-session event streams are excluded. Unavailable/private videos cannot be inventoried; hidden playlist entries are not counted as public talks.</p>
+    <p>Topic matching uses publisher playlist membership and description terms, with title terms helping prioritize matches. Where those are unavailable, title-only suggestions are always flagged for review. This is rule-based metadata classification, not a human review or transcript summary. Unclear subjects stay in Unclassified topics. A talk may appear in several topics.</p>
+    <p>Universe sessions without a public recording link to attendee-only details. <a href="https://reg.githubuniverse.com/flow/github/universe26/attendee-portal/login" target="_blank" rel="noopener noreferrer">Sign in to the attendee portal ↗</a>. This site does not collect credentials or personal access tokens.</p>
+    <p>Years use the Universe event date or AI Engineer publication date, not an inferred AI Engineer event year. Publisher playlists are linked in each talk's mapping details. YouTube loads only after you choose a recording; watch history stays in this browser.</p>
+  </details>
+</footer>
+
+<script src="data.js"></script>
+<script src="insights.js"></script>
+<script src="ai-engineer.js"></script>
+<script src="ai-engineer-part-2.js"></script>
+<script src="watchlists.js"></script>
+<script src="graph.js"></script>
+<script>
+const DIMS = [
+  { id: "learning", label: "Learning topics", top: 19 },
+  { id: "topic", label: "Topics", top: 22 },
+  { id: "product", label: "Products", top: 16 },
+  { id: "play", label: "Themes", top: 10 },
+  { id: "audience", label: "Audience", top: 10 },
+];
+const $ = (id) => document.getElementById(id);
+const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const trunc = (s, n) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
+const U = window.U26_DATA, A = window.AIE_DATA;
+const D = { ...U, sessions: [
+  ...U.sessions.map((session) => ({ ...session, source: "universe", ...A.universe[session.code] })),
+  ...A.sessions,
+] };
+const INSIGHTS = window.U26_INSIGHTS || {}, plays = new Map(D.plays.map((p) => [p.id, p]));
+const topics = new Map(A.topics.map((topic) => [topic.id, topic]));
+const playlists = new Map(A.playlists.map((playlist) => [playlist.id, playlist]));
+const SOURCES = { universe: "GitHub Universe 2026", "ai-engineer": "AI Engineer" };
+const guides = new Map(window.SESSION_WATCHLISTS.map((guide) => [guide.id, guide]));
+const sessionsByCode = new Map(D.sessions.map((session) => [session.code, session]));
+let activeGuide = null;
+const defaultState = { view: "chart", tab: "learning", source: "all", year: "", selection: null, sub: null, gTopic:"", gSub:"", peer:"" };
+let st = { ...defaultState };
+let query = "", recOnly = false, historyMode = false;
+let reviewOnly = false, rowLimit = 150;
+const HISTORY_KEY = "u26-session-watch-history-v1";
+let watchLedger = {}, player = null, currentVideoCode = null, previousVideoTime = null, youtubeApiPromise = null;
+
+const matches = (s, sel) => !sel || (sel.dimension === "play" ? s.play === sel.value : s[sel.dimension].includes(sel.value));
+const yearOf = (s) => (s.source === "universe" ? s.day : s.published || "").slice(0, 4) || "unknown";
+const scoped = () => D.sessions.filter((s) => (st.source === "all" || s.source === st.source)
+  && (!st.year || yearOf(s) === st.year) && (!reviewOnly || s.mapping?.status === "review"));
+const base = () => scoped().filter((s) => matches(s, st.selection));
+const labelOf = (sel) => sel.dimension === "learning" ? topics.get(sel.value).name
+  : sel.dimension === "play" ? plays.get(sel.value).name : sel.value;
+const matchesSub = (s, sub) => !sub || (sub.field === "intersection"
+  ? s[sub.rowField || "track"] === sub.track && sub.rightValues.includes(s[sub.rightField])
+  : s[sub.field] === sub.value);
+const groupLabel = (field, values) => values.length > 1
+  ? `Other (${values.length})`
+  : field === "play" ? plays.get(values[0])?.name || values[0] : values[0];
+
+function tally(list, key) {
+  const m = new Map();
+  for (const s of list) for (const k of [].concat(key(s))) m.set(k, (m.get(k) || 0) + 1);
+  return [...m].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(b[0])).map(([key, count]) => ({ key, count }));
+}
+
+// State lives in the URL hash so any selection is a shareable link.
+function writeHash(push = false) {
+  const p = new URLSearchParams();
+  if (activeGuide) p.set("path", activeGuide.id);
+  if (st.source !== "all") p.set("src", st.source);
+  if (st.year) p.set("y", st.year);
+  if (st.view === "graph") {
+    p.set("view","graph");
+    if (st.gTopic) p.set("topic",st.gTopic);
+    if (st.gSub) p.set("subtopic",st.gSub);
+    if (st.peer) p.set("with",st.peer);
+    if (query.trim()) p.set("q",query.trim());
+    if (recOnly) p.set("rec","1");
+    if (reviewOnly) p.set("review","1");
+  }
+  if (st.selection) { p.set("d", st.selection.dimension); p.set("v", st.selection.value); }
+  else if (st.tab !== "learning") p.set("d", st.tab);
+  if (st.sub?.field === "intersection") {
+    p.set("f", "intersection"); p.set("fv", st.sub.track);
+    if (st.sub.rowField === "source") p.set("rf", "source");
+    p.set("f2", st.sub.rightField); p.set("fv2", JSON.stringify(st.sub.rightValues));
+  } else if (st.sub) { p.set("f", st.sub.field); p.set("fv", st.sub.value); }
+  const hash = p.toString();
+  history[push ? "pushState" : "replaceState"](null, "", location.pathname + location.search + (hash ? "#" + hash : ""));
+}
+
+function readHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  const d = p.get("d"), v = p.get("v"), f = p.get("f"), fv = p.get("fv");
+  const next = { ...defaultState };
+  if (Object.hasOwn(SOURCES, p.get("src"))) next.source = p.get("src");
+  if ((/^20\d{2}$/.test(p.get("y") || "") || p.get("y") === "unknown") && D.sessions.some((s) => yearOf(s) === p.get("y"))) next.year = p.get("y");
+  if (p.get("view") === "graph") {
+    next.view = "graph";
+    const topic = p.get("topic"), related = p.get("with");
+    if (topics.has(topic) && topic !== "review") {
+      next.gTopic = topic;
+      if (graphTerms[topic].some(([key]) => key === p.get("subtopic"))) next.gSub = p.get("subtopic");
+      if (topics.has(related) && related !== topic && related !== "review") next.peer = related;
+    }
+    return next;
+  }
+  if (DIMS.some((x) => x.id === d)) next.tab = d;
+  // Old catalog links remain scoped to Universe; its tracks are not shared tags.
+  if (next.tab !== "learning") next.source = "universe";
+  if (v && D.sessions.some((s) => (next.source === "all" || s.source === next.source)
+    && matches(s, { dimension: next.tab, value: v }))) next.selection = { dimension: next.tab, value: v };
+  if (next.selection && f === "intersection" && fv && ["play", "type"].includes(p.get("f2"))) {
+    try {
+      const rightValues = JSON.parse(p.get("fv2") || "null");
+      const rightField = p.get("f2");
+      const rowField = p.get("rf") === "source" ? "source" : "track";
+      const valid = rightField === "play" ? D.plays.map((play) => play.id) : [...new Set(D.sessions.map((s) => s.type))];
+      if (Array.isArray(rightValues) && rightValues.length && rightValues.every((value) => typeof value === "string" && valid.includes(value))
+        && [...new Set(D.sessions.map((s) => s[rowField]))].includes(fv)) {
+        next.sub = { field: "intersection", rowField, track: fv, rightField, rightValues: [...new Set(rightValues)] };
+      }
+    } catch {}
+  } else if (next.selection && ["track", "play", "type"].includes(f) && fv) next.sub = { field: f, value: fv };
+  return next;
+}
+
+function set(next, push = false) {
+  st = { ...st, ...next };
+  rowLimit = 150;
+  if (st.selection) st.tab = st.selection.dimension;
+  render();
+  writeHash(push);
+}
+
+// Split in rendered dimensions so tiles retain readable proportions on phones.
+function layout(items, x, y, w, h) {
+  if (!items.length) return [];
+  if (items.length === 1) return [{ ...items[0], x, y, w, h }];
+  const total = items.reduce((n, i) => n + i.count, 0);
+  let acc = 0, cut = 1;
+  for (; cut < items.length; cut++) { acc += items[cut - 1].count; if (acc >= total / 2) break; }
+  const a = items.slice(0, cut), b = items.slice(cut);
+  const ratio = a.reduce((n, i) => n + i.count, 0) / total;
+  if (w >= h) return [...layout(a, x, y, w * ratio, h), ...layout(b, x + w * ratio, y, w - w * ratio, h)];
+  return [...layout(a, x, y, w, h * ratio), ...layout(b, x, y + h * ratio, w, h - h * ratio)];
+}
+
+function renderTabs() {
+  $("tabs").innerHTML = DIMS.filter((d) => d.id === "learning" || st.source === "universe")
+    .map((d) => `<button class="tab" data-dim="${d.id}" aria-pressed="${st.view !== "graph" && st.tab === d.id}">${d.id === "topic" ? "Catalog topics" : d.label}</button>${d.id === "learning" ? `<button class="tab" type="button" data-view="graph" aria-controls="kg" aria-pressed="${st.view === "graph"}">Knowledge graph</button>` : ""}`).join("");
+}
+
+function renderSources() {
+  $("source").value = st.source;
+  const years = [...new Set(D.sessions.filter((s) => st.source === "all" || s.source === st.source).map(yearOf).filter(Boolean))].sort().reverse();
+  $("year").innerHTML = `<option value="">All years</option>${years.map((year) => `<option value="${year}">${year === "unknown" ? "Publication date unknown" : year}</option>`).join("")}`;
+  $("year").value = st.year;
+  const list = scoped();
+  $("source-breakdown").textContent = Object.entries(SOURCES).filter(([id]) => st.source === "all" || st.source === id)
+    .map(([id, name]) => `${name}: ${list.filter((s) => s.source === id).length} sessions`).join(" · ")
+    + " · years: event date / video publication";
+}
+
+function renderTree() {
+  if (st.view === "graph") return;
+  const dim = DIMS.find((d) => d.id === st.tab);
+  const items = tally(scoped(), (s) => (dim.id === "play" ? s.play : s[dim.id])).slice(0, dim.top);
+  const sel = st.selection?.dimension === dim.id ? st.selection.value : null;
+  const width = $("tree").clientWidth, height = $("tree").clientHeight;
+  let chartItems = items;
+  let boxes = layout(chartItems, 0, 0, width, height);
+  // Keep exact tile areas; move genuinely unreadable small topics into a visible index.
+  if (dim.id === "learning") {
+    while (chartItems.length > 1 && boxes.some((box) => box.w < 104 || box.h < 68)) {
+      chartItems = chartItems.slice(0, -1);
+      boxes = layout(chartItems, 0, 0, width, height);
+    }
+  }
+  const overflow = items.slice(chartItems.length);
+  $("topic-overflow").innerHTML = overflow.length
+    ? `<p class="topic-overflow-label">Smaller topics · listed here so every name stays readable</p>${overflow.map((item) => {
+      const label = labelOf({ dimension: dim.id, value: item.key });
+      return `<button class="topic-extra" type="button" data-value="${esc(item.key)}" aria-pressed="${sel === item.key}" aria-label="${esc(label)} · ${item.count} sessions"><span class="t-label">${esc(label)}</span><span class="t-count">${item.count}</span></button>`;
+    }).join("")}` : "";
+  $("tree").innerHTML = boxes.map((b, i) => {
+    const label = labelOf({ dimension: dim.id, value: b.key });
+    const color = dim.id === "play" ? plays.get(b.key).color : D.palette[i % D.palette.length];
+    const tiny = b.h < 48 || b.w < 90, small = tiny || b.h < 84 || b.w < 150;
+    const cls = ["tile", small && "is-small", tiny && "is-tiny", b.h < 64 && "is-short", sel === b.key && "is-selected", sel && sel !== b.key && "is-dim"].filter(Boolean).join(" ");
+    return `<button class="${cls}" data-value="${esc(b.key)}" aria-label="${esc(label)} · ${b.count} sessions" aria-pressed="${sel === b.key}" title="${esc(label)} · ${b.count} sessions"
+      style="left:${b.x / width * 100}%;top:${b.y / height * 100}%;width:${b.w / width * 100}%;height:${b.h / height * 100}%;background:${color}">
+      <span class="t-label">${esc(label)}</span><span class="t-count">${b.count}</span></button>`;
+  }).join("") || `<p class="tree-empty">No topics in this source/year selection.</p>`;
+  $("tree-note").textContent = dim.id === "play" ? "Larger tiles = more sessions · one curated theme per session"
+    : dim.id === "learning" ? "Topic counts overlap · volume, not importance · source filter applies"
+    : `Larger tiles = more sessions · top ${items.length} catalog tags, which can overlap`;
+}
+
+function renderHead() {
+  $("detail").classList.toggle("has-selection", !!st.selection && !historyMode);
+  if (historyMode) {
+    $("head").innerHTML = `<h2>Your watch history</h2><p class="hint">Sessions you've watched or marked watched, saved in this browser.</p>`;
+    return;
+  }
+  const list = base(), recs = list.filter((s) => s.yt).length;
+  if (!st.selection) {
+    $("head").innerHTML = `<h2>All sessions</h2><p class="hint">Follow a topic above, search for an idea, or start with a recording.</p>`;
+    return;
+  }
+  const theme = st.selection.dimension === "play" ? plays.get(st.selection.value) : null;
+  const share = scoped().length ? Math.round((list.length / scoped().length) * 100) : 0;
+  $("head").innerHTML = `<div class="head-row"><h2>${esc(labelOf(st.selection))}</h2>
+      <button class="clear" id="clear">All sessions ×</button></div>
+    <p class="stats">${list.length} sessions · ${recs} recordings · ${share}% of this source/year selection</p>
+    ${theme ? `<p class="hint">${esc(theme.description)}</p>` : ""}`;
+}
+
+function renderIntersectionMatrix() {
+  const wrap = $("matrix-wrap");
+  if (!st.selection || historyMode) { wrap.hidden = true; $("focus-matrix").innerHTML = ""; return; }
+  wrap.hidden = false;
+  const list = base(), total = list.length;
+  const rowField = st.tab === "learning" ? "source" : "track";
+  const rightField = st.tab === "learning" || st.selection?.dimension === "play" ? "type" : "play";
+  const grouped = tally(list, (s) => s[rightField]).map((entry) => ({
+    key: entry.key, values: [entry.key], label: rightField === "play" ? plays.get(entry.key).name : entry.key, count: entry.count,
+  }));
+  const right = grouped.length > 4
+    ? [...grouped.slice(0, 3), { key: null, values: grouped.slice(3).flatMap((entry) => entry.values), label: `Other (${grouped.length - 3})`, count: grouped.slice(3).reduce((n, entry) => n + entry.count, 0) }]
+    : grouped;
+  const tracks = tally(list, (s) => s[rowField]);
+  const cellCounts = new Map();
+  for (const s of list) {
+    const key = `${s[rowField]}\u0000${s[rightField]}`;
+    cellCounts.set(key, (cellCounts.get(key) || 0) + 1);
+  }
+  const countFor = (track, entry) => entry.values.reduce((sum, value) => sum + (cellCounts.get(`${track}\u0000${value}`) || 0), 0);
+  const maximum = Math.max(1, ...tracks.flatMap((track) => right.map((entry) => countFor(track.key, entry))));
+  const matrixX = 244, matrixY = 108, cellW = 116, cellH = 46, rowGap = 10;
+  const footerY = matrixY + tracks.length * (cellH + rowGap) + 10;
+  $("focus-matrix").setAttribute("viewBox", `0 0 760 ${footerY + 68}`);
+  const rightHead = rightField === "play" ? "CURATED THEMES" : "SESSION FORMAT";
+  const header = right.map((entry, col) => {
+    const x = matrixX + col * cellW + cellW / 2;
+    return `<text x="${x}" y="62" text-anchor="middle" font-family="var(--sans)" font-size="10" font-weight="600" fill="var(--ink)">${esc(trunc(entry.label, 18))}</text>
+      <text x="${x}" y="78" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">${entry.count} sessions</text>`;
+  }).join("");
+  const rows = tracks.map((track, row) => {
+    const y = matrixY + row * (cellH + rowGap);
+    const cells = right.map((entry, col) => {
+      const count = countFor(track.key, entry);
+      const x = matrixX + col * cellW, sub = { field: "intersection", rowField, track: track.key, rightField, rightValues: entry.values };
+      const active = st.sub?.field === "intersection" && st.sub.track === track.key && st.sub.rightField === rightField && st.sub.rightValues.length === entry.values.length && st.sub.rightValues.every((value) => entry.values.includes(value));
+      const opacity = count ? 0.12 + 0.36 * (count / maximum) : 0.035;
+      const fill = active ? "var(--accent)" : "var(--ink)";
+      const fillOpacity = active ? 0.32 : opacity;
+      const label = `${rowField === "source" ? SOURCES[track.key] : track.key} × ${entry.label}: ${count} session${count === 1 ? "" : "s"}`;
+      return `<g class="sk-cell" ${count ? `role="button" tabindex="0" aria-pressed="${active}" data-row-field="${rowField}" data-track="${esc(sub.track)}" data-right-field="${rightField}" data-right-values="${esc(JSON.stringify(sub.rightValues))}" aria-label="${esc(label)}. ${active ? "Remove filter" : "Filter sessions"}"` : `aria-hidden="true"`}>
+        <title>${esc(label)}</title><rect class="cell-underlay" x="${x + 3}" y="${y}" width="${cellW - 8}" height="${cellH}" rx="4" fill="var(--paper)"/>
+        <rect class="cell-bg" data-row="${esc(track.key)}" data-col="${esc(entry.label)}" data-value="${count}" ${active ? 'data-focal="true"' : ""} x="${x + 3}" y="${y}" width="${cellW - 8}" height="${cellH}" rx="4" fill="${fill}" fill-opacity="${fillOpacity}" stroke="var(--rule)"/>
+        <text x="${x + cellW / 2 - 2}" y="${y + 21}" text-anchor="middle" font-family="var(--mono)" font-size="16" font-weight="600" fill="var(--ink)">${count || "—"}</text>
+        <text x="${x + cellW / 2 - 2}" y="${y + 36}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">${count ? "sessions" : ""}</text></g>`;
+    }).join("");
+    return `<text x="224" y="${y + 20}" text-anchor="end" font-family="var(--sans)" font-size="11" font-weight="600" fill="var(--ink)">${esc(trunc(rowField === "source" ? SOURCES[track.key] : track.key, 27))}</text>
+      <text x="224" y="${y + 36}" text-anchor="end" font-family="var(--mono)" font-size="9" fill="var(--muted)">${track.count} sessions</text>${cells}`;
+  }).join("");
+  const selectionName = labelOf(st.selection);
+  $("focus-matrix").innerHTML = `<title id="u26-matrix-title">${esc(trunc(selectionName, 60))}: session intersection matrix</title>
+    <desc id="u26-matrix-desc">${total} sessions for ${esc(selectionName)}. Rows are ${rowField === "source" ? "sources" : "catalog tracks"}; columns are ${rightHead.toLowerCase()}. Each cell counts sessions that match both, and can filter the list.</desc>
+    <text x="224" y="24" text-anchor="end" font-family="var(--mono)" font-size="9" font-weight="600" letter-spacing="0.08em" fill="var(--muted)">${rowField === "source" ? "SOURCE" : "CATALOG TRACK"}</text>
+    <text x="${matrixX}" y="24" font-family="var(--mono)" font-size="9" font-weight="600" letter-spacing="0.08em" fill="var(--muted)">${rightHead} · ${esc(trunc(selectionName.toUpperCase(), 28))}</text>
+    ${header}${rows}
+    <line x1="16" y1="${footerY}" x2="744" y2="${footerY}" stroke="var(--rule)" stroke-width="1"/>
+    <rect x="16" y="${footerY + 20}" width="14" height="10" fill="var(--ink)" fill-opacity="0.12"/>
+    <text x="36" y="${footerY + 29}" font-family="var(--mono)" font-size="9" fill="var(--muted)">LOW</text>
+    <rect x="76" y="${footerY + 20}" width="14" height="10" fill="var(--ink)" fill-opacity="0.48"/>
+    <text x="96" y="${footerY + 29}" font-family="var(--mono)" font-size="9" fill="var(--muted)">HIGH · CELL COUNT = MATCHING SESSIONS</text>
+    <text x="744" y="${footerY + 52}" text-anchor="end" class="matrix-note">Select a cell to narrow the list · counts are not a ranking</text>`;
+}
+
+function fmtDay(s) {
+  if (!s.day) return "";
+  return new Date(s.day + "T12:00:00Z").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+}
+
+function orderSessions(list) {
+  list = [...list].sort((a, b) => historyMode
+    ? watchLedger[b.code].watchedAt - watchLedger[a.code].watchedAt
+    : Number(!!b.yt) - Number(!!a.yt) || (b.published || "").localeCompare(a.published || "") || a.code.localeCompare(b.code));
+  if (historyMode || st.source !== "all") return list;
+  const recorded = Object.keys(SOURCES).map((id) => list.filter((s) => s.source === id && s.yt));
+  const mixed = [];
+  for (let i = 0; i < Math.max(...recorded.map((bucket) => bucket.length)); i++) {
+    for (const bucket of recorded) if (bucket[i]) mixed.push(bucket[i]);
+  }
+  return [...mixed, ...list.filter((s) => !s.yt)];
+}
+
+function renderList() {
+  $("history-toggle").textContent = `Watch history · ${Object.values(watchLedger).filter((entry) => entry.watchedAt).length}`;
+  $("history-toggle").setAttribute("aria-pressed", String(historyMode));
+  let list = historyMode
+    ? scoped().filter((s) => watchLedger[s.code]?.watchedAt)
+    : base().filter((s) => matchesSub(s, st.sub));
+  const q = query.trim().toLowerCase();
+  if (q) list = list.filter((s) => {
+    const insight = INSIGHTS[s.code];
+    return [s.title, s.code, s.track, s.type, ...s.topic, ...s.product, ...s.audience,
+      plays.get(s.play)?.name, insight?.takeaway, SOURCES[s.source],
+      ...s.learning.map((id) => topics.get(id).name),
+      ...(s.playlists || []).map((id) => playlists.get(id).title)].filter(Boolean).some((text) => text.toLowerCase().includes(q));
+  });
+  if (recOnly) list = list.filter((s) => s.yt);
+  if (st.view === "graph") list = renderGraph(list);
+  list = orderSessions(list);
+  const subLabel = st.sub?.field === "intersection"
+    ? `${st.sub.rowField === "source" ? SOURCES[st.sub.track] : st.sub.track} × ${groupLabel(st.sub.rightField, st.sub.rightValues)}`
+    : st.sub && (st.sub.field === "play" ? plays.get(st.sub.value)?.name : st.sub.value);
+  $("sub-chip").innerHTML = st.sub && !historyMode ? `<button class="chip" id="sub-clear" aria-label="Remove ${esc(subLabel)} filter">${esc(trunc(subLabel, 32))} ×</button>` : "";
+  const n = list.filter((s) => s.yt).length;
+  $("list-count").textContent = historyMode
+    ? `${list.length} watched session${list.length === 1 ? "" : "s"} · sorted by most recent · saved in this browser`
+    : `${list.length} session${list.length === 1 ? "" : "s"} · ${n} recording${n === 1 ? "" : "s"} · recordings first${st.source === "all" ? " · sources interleaved" : ""}`;
+  if (list.length > rowLimit) $("list-count").textContent += ` · showing ${rowLimit}`;
+  $("show-more").hidden = list.length <= rowLimit;
+  $("show-more").textContent = `Show ${Math.min(150, list.length - rowLimit)} more sessions`;
+  $("rows").innerHTML = list.length ? list.slice(0, rowLimit).map((s) => {
+    const p = plays.get(s.play);
+    const meta = [s.type, s.len && `${s.len} min`, s.level && `L${s.level}`,
+      s.source === "universe" ? fmtDay(s) : s.published ? `Published ${s.published}` : "Publication date unknown"].filter(Boolean).map(esc).join(" · ");
+    const watchEntry = watchLedger[s.code];
+    const watched = watchEntry?.watchedAt
+      ? `<span class="watched-at">${watchEntry.method === "manual" ? "Marked watched" : "Watched"} ${new Date(watchEntry.watchedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>`
+      : "";
+    const watchAction = `<button class="watch-toggle" type="button" data-code="${esc(s.code)}" aria-pressed="${!!watchEntry?.watchedAt}">${watchEntry?.watchedAt ? "Remove watched mark" : "Mark watched"}</button>`;
+    const insight = INSIGHTS[s.code];
+    const learningLinks = st.tab === "learning" || s.source === "ai-engineer"
+      ? `<div class="topic-links">${s.learning.map((id) => `<button class="topic-link" type="button" data-topic="${esc(id)}" aria-label="Browse ${esc(topics.get(id).name)}">${id === s.primaryTopic ? "Primary: " : ""}${esc(topics.get(id).name)}</button>`).join("")}</div>` : "";
+    const mapping = s.mapping ? `<details class="mapping-evidence"><summary>Why these topics${s.mapping.status === "review" ? " · needs review" : ""}</summary>
+      <p>${esc(s.mapping.reason)}</p>
+      ${s.mapping.evidence.map((entry) => `<p><strong>${esc(topics.get(entry.topic).name)}</strong>: ${entry.descriptionTerms.length ? `description terms: ${esc(entry.descriptionTerms.join(", "))}` : entry.playlists.length ? "publisher playlist membership" : `title-only terms: ${esc(entry.titleTerms.join(", "))} (needs review)`}${entry.playlists.length ? ` · ${entry.playlists.length} supporting playlist${entry.playlists.length > 1 ? "s" : ""}` : ""}.</p>`).join("")}
+      ${s.playlists.length ? `<p>Publisher playlists (membership is not an inferred event date):</p><ul>${s.playlists.map((id) => {
+        const playlist = playlists.get(id);
+        return `<li><a href="${esc(playlist.url)}" target="_blank" rel="noopener noreferrer">${esc(playlist.title)} ↗</a></li>`;
+      }).join("")}</ul>` : "<p>No publisher playlist membership found.</p>"}</details>` : "";
+    return `<li class="row" data-source="${s.source}" data-code="${esc(s.code)}"><span class="code">${s.source === "universe" ? esc(s.code) : "AI Engineer"}</span>
+      <div class="row-top">${s.yt
+        ? `<button class="title recording-open" type="button" data-code="${esc(s.code)}" aria-label="Play recording for ${esc(s.title)}"><span aria-hidden="true">▶ </span>${esc(s.title)}</button>`
+        : `<a class="title" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(s.title)}; attendee sign-in required">${esc(s.title)}</a>`}
+        ${s.yt ? `<a class="rec" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer" aria-label="${s.source === "universe" ? "Session details; attendee sign-in required" : "Original YouTube recording"}: ${esc(s.title)}">${s.source === "universe" ? "Details (sign-in)" : "YouTube"} ↗</a>` : ""}</div>
+      <p class="meta"><span class="source-tag">${SOURCES[s.source]}</span> · ${meta}${p ? ` · <span class="dot" style="--c:${p.color}"></span>${esc(p.name)}` : ""} ${watched} ${watchAction}</p>
+      ${!s.yt ? `<p class="access-note">No public recording · attendee sign-in required</p>` : ""}
+      ${st.view === "graph" && st.gSub ? `<p class="kg-hit">Subtopic match · ${esc(graphEvidence(s,st.gTopic).get(st.gSub))}</p>` : ""}
+      ${s.mapping?.status === "review" ? `<p class="mapping-note">Tentative topic match · needs review</p>` : ""}
+      ${learningLinks}${insight ? `<details class="session-insight"><summary>Key takeaway</summary><p>${esc(insight.takeaway)}</p></details>` : ""}${mapping}</li>`;
+  }).join("") : `<li class="empty">${historyMode && !Object.values(watchLedger).some((entry) => entry.watchedAt)
+    ? "No watched sessions yet. Play a recording or mark a session watched."
+    : "No sessions match these filters. Try another source, year or search, or turn off the filters."}</li>`;
+}
+
+function readWatchLedger() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(HISTORY_KEY) || "{}");
+    if (!saved || typeof saved !== "object" || Array.isArray(saved)) return {};
+    const validCodes = new Set(D.sessions.map((session) => session.code));
+    return Object.fromEntries(Object.entries(saved).filter(([code, entry]) =>
+      validCodes.has(code) && entry && Number.isFinite(entry.seconds) && entry.seconds >= 0
+      && (entry.method === "manual"
+        ? entry.duration === 0 && Number.isFinite(entry.watchedAt)
+        : Number.isFinite(entry.duration) && entry.duration > 0
+          && (entry.watchedAt === null || Number.isFinite(entry.watchedAt)))));
+  } catch (error) {
+    $("history-status").textContent = `Watch history unavailable: ${error.message}`;
+    return {};
+  }
+}
+
+function saveWatchLedger() {
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(watchLedger));
+    $("history-status").textContent = "";
+  } catch (error) {
+    $("history-status").textContent = `Could not save watch history: ${error.message}`;
+  }
+}
+
+function videoId(url) {
+  const parsed = new URL(url);
+  if (parsed.hostname === "youtu.be") return parsed.pathname.slice(1);
+  if (parsed.hostname.endsWith("youtube.com")) {
+    return parsed.searchParams.get("v") || parsed.pathname.match(/^\/(?:embed|shorts)\/([^/]+)/)?.[1] || "";
+  }
+  return "";
+}
+
+function loadYouTubeApi() {
+  if (window.YT?.Player) return Promise.resolve(window.YT);
+  if (youtubeApiPromise) return youtubeApiPromise;
+  youtubeApiPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    window.onYouTubeIframeAPIReady = () => resolve(window.YT);
+    script.src = "https://www.youtube.com/iframe_api";
+    script.onerror = () => reject(new Error("YouTube player could not be loaded."));
+    document.head.appendChild(script);
+  });
+  return youtubeApiPromise;
+}
+
+async function openRecording(code) {
+  const session = D.sessions.find((item) => item.code === code && item.yt);
+  if (!session) return;
+  currentVideoCode = code;
+  previousVideoTime = null;
+  $("player-title").textContent = session.title;
+  $("player-youtube").href = session.yt;
+  $("player-note").querySelector("span").textContent = "Playback is marked watched after half the video is played; seeking does not count.";
+  $("player-dialog").showModal();
+  try {
+    const YT = await loadYouTubeApi();
+    if (currentVideoCode !== code) return;
+    const id = videoId(session.yt);
+    if (!id) throw new Error("This recording URL is not supported by the embedded player.");
+    if (!player) {
+      player = new YT.Player("yt-player", {
+        videoId: id,
+        playerVars: { autoplay: 1, playsinline: 1, rel: 0 },
+        events: {
+          onStateChange: (event) => {
+            if (event.data === YT.PlayerState.PLAYING) previousVideoTime = player.getCurrentTime();
+            else previousVideoTime = null;
+          },
+          onError: () => { $("player-note").querySelector("span").textContent = "This recording could not be embedded. Use the YouTube link or session page."; },
+        },
+      });
+    } else {
+      player.loadVideoById(id);
+    }
+  } catch (error) {
+    $("player-note").querySelector("span").textContent = `${error.message} Use the YouTube link or session page.`;
+  }
+}
+
+function trackPlayback() {
+  if (!currentVideoCode || !player || !$("player-dialog").open || !window.YT?.PlayerState
+    || player.getPlayerState() !== YT.PlayerState.PLAYING) return;
+  const now = player.getCurrentTime(), duration = player.getDuration();
+  if (previousVideoTime !== null && now > previousVideoTime && now - previousVideoTime <= 3 && duration > 0) {
+    const code = currentVideoCode;
+    const entry = watchLedger[code] || { seconds: 0, duration, watchedAt: null, method: "video" };
+    entry.seconds += now - previousVideoTime;
+    entry.duration = duration;
+    const justWatched = !entry.watchedAt && entry.seconds >= duration / 2;
+    if (justWatched) {
+      entry.watchedAt = Date.now();
+      entry.method = "video";
+      $("player-note").querySelector("span").textContent = "Added to watched history (50% playback reached).";
+    } else {
+      $("player-note").querySelector("span").textContent = `${Math.min(100, Math.floor(entry.seconds / duration * 100))}% watched · history is saved at 50%.`;
+    }
+    watchLedger[code] = entry;
+    saveWatchLedger();
+    if (justWatched) { syncGuideProgress(code); renderList(); }
+  }
+  previousVideoTime = now;
+}
+
+function syncGuideProgress(code) {
+  for (const mark of $("guide").querySelectorAll(`[data-progress="${CSS.escape(code)}"]`))
+    mark.textContent = watchLedger[code]?.watchedAt ? "Watched" : "";
+}
+
+function guideChapters(guide) {
+  let number = 0;
+  return `<p class="guide-provenance">Choose a chapter. Takeaways come from session descriptions; insights and reasons to watch are editorial.</p>` +
+    guide.chapters.map(({ title, picks }) => `<details class="guide-chapter"><summary>${esc(title)}
+      <span class="stats">${picks.length} talks · ~${picks.reduce((n, p) => n + sessionsByCode.get(p.code).len, 0)} min</span></summary>
+    <ol start="${number + 1}">${picks.map(({ code, takeaway, insight, why }) => {
+      const s = sessionsByCode.get(code);
+      return `<li class="guide-pick">
+      <p class="stats">Watch ${++number} · ${esc(SOURCES[s.source])} · ${s.len} min</p>
+      <h4>${esc(s.title.split(" — ")[0])}</h4>
+      <dl>${[["Takeaway", takeaway], ["Insight", insight], ["Why watch", why]].map(([label, text]) => `<div><dt>${label}</dt> <dd>${esc(text)}</dd></div>`).join("")}</dl>
+      <div class="guide-actions"><button type="button" class="recording-open" data-code="${esc(s.code)}" aria-label="Watch ${esc(s.title)}">▶ Watch here</button>
+      <a href="${esc(s.yt)}" target="_blank" rel="noopener noreferrer">YouTube ↗</a>
+      ${s.source === "universe" ? `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">Details (sign-in) ↗</a>` : ""}
+      <span class="watched-at" data-progress="${esc(s.code)}">${watchLedger[s.code]?.watchedAt ? "Watched" : ""}</span></div></li>`;
+    }).join("")}</ol></details>`).join("") + `
+    <nav class="guide-related" aria-label="Related catalog topics"><strong>Explore related topics</strong>
+    ${guide.topics.map((id) => `<a href="#d=learning&v=${encodeURIComponent(id)}">${esc(topics.get(id).name)}</a>`).join("")}</nav>`;
+}
+
+function showGuide(next) {
+  if (next === activeGuide) return;
+  if (activeGuide) {
+    const old = $(`panel-${activeGuide.id}`);
+    old.hidden = true; old.replaceChildren();
+    $(`toggle-${activeGuide.id}`).setAttribute("aria-expanded", "false");
+  }
+  activeGuide = next;
+  if (next) {
+    const panel = $(`panel-${next.id}`);
+    panel.innerHTML = guideChapters(next); panel.hidden = false;
+    $(`toggle-${next.id}`).setAttribute("aria-expanded", "true");
+  }
+}
+
+function route() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  showGuide(guides.get(p.get("path")));
+  st = readHash();
+  if (st.view === "graph") {
+    $("q").value = query = p.get("q") || "";
+    $("rec").checked = recOnly = p.get("rec") === "1";
+    $("review-only").checked = reviewOnly = p.get("review") === "1";
+  }
+  rowLimit = 150; render();
+}
+
+function render() {
+  const graph = st.view === "graph";
+  $("kg").hidden = !graph;
+  for (const id of ["tree","topic-overflow","tree-note"]) $(id).hidden = graph;
+  renderSources(); renderTabs(); renderTree(); renderHead(); renderIntersectionMatrix(); renderList();
+}
+
+function pickGraph(next, focusId) {
+  set(next,true);
+  if (focusId) $(focusId).focus({preventScroll:true});
+}
+document.addEventListener("click", (e) => {
+  const toggle = e.target.closest(".guide-toggle");
+  if (toggle) {
+    showGuide(activeGuide?.id === toggle.dataset.guide ? null : guides.get(toggle.dataset.guide));
+    writeHash(true); return;
+  }
+  const related = e.target.closest(".guide-related a");
+  if (related && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+    e.preventDefault();
+    history.pushState(null, "", related.hash);
+    query = ""; $("q").value = "";
+    reviewOnly = recOnly = historyMode = false;
+    $("rec").checked = $("review-only").checked = false;
+    route();
+    $("head").setAttribute("tabindex", "-1"); $("head").focus(); return;
+  }
+  const topic = e.target.closest(".topic-link");
+  if (topic && st.view === "graph" && topic.dataset.topic !== "review") {
+    pickGraph({gTopic:topic.dataset.topic,gSub:"",peer:""}); $("kg-topic").focus(); return;
+  }
+  if (topic) { historyMode = false; return set({ view:"chart", tab: "learning", selection: { dimension: "learning", value: topic.dataset.topic }, sub: null }); }
+  const pair = e.target.closest("[data-kg-pair]");
+  if (pair) return pickGraph(graphPairState(pair.dataset.kgPair), "kg-peer");
+  if (e.target.closest("[data-kg-jump]")) {
+    $("detail").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+    $("head").setAttribute("tabindex", "-1"); $("head").focus({preventScroll:true}); return;
+  }
+  const node = e.target.closest("[data-kg-topic], [data-kg-peer]");
+  if (node?.dataset.kgTopic) {
+    const sub = node.dataset.kgSub || "", again = st.gTopic === node.dataset.kgTopic && st.gSub === sub;
+    return pickGraph({gTopic:node.dataset.kgTopic,gSub:again ? "" : sub,peer:""}, sub ? "kg-sub" : "kg-topic");
+  }
+  if (node?.dataset.kgPeer) return pickGraph({peer:st.peer === node.dataset.kgPeer ? "" : node.dataset.kgPeer}, "kg-peer");
+  if (e.target.closest("#kg-reset")) return pickGraph({gTopic:"",gSub:"",peer:""},"kg-topic");
+  if (e.target.closest("#show-more")) { rowLimit += 150; renderList(); return; }
+  const tab = e.target.closest(".tab");
+  if (tab) {
+    const graph = tab.dataset.view === "graph";
+    historyMode = false;
+    set({view:graph ? "graph" : "chart", tab:tab.dataset.dim || "learning", selection:null,sub:null,gTopic:"",gSub:"",peer:""}, graph || st.view === "graph");
+    $("tabs").querySelector('[aria-pressed="true"]').focus({preventScroll:true}); return;
+  }
+  const tile = e.target.closest(".tile, .topic-extra");
+  if (tile) {
+    const same = st.selection?.dimension === st.tab && st.selection.value === tile.dataset.value;
+    historyMode = false;
+    return set({ selection: same ? null : { dimension: st.tab, value: tile.dataset.value }, sub: null });
+  }
+  if (e.target.closest("#clear")) { historyMode = false; return set({ selection: null, sub: null }); }
+  if (e.target.closest("#sub-clear")) return set({ sub: null });
+  if (e.target.closest("#history-toggle")) { historyMode = !historyMode; render(); return; }
+  const watchToggle = e.target.closest(".watch-toggle");
+  if (watchToggle) {
+    const code = watchToggle.dataset.code, entry = watchLedger[code];
+    if (entry?.watchedAt) {
+      watchLedger[code] = entry.method === "manual"
+        ? null
+        : { ...entry, seconds: 0, watchedAt: null };
+      if (watchLedger[code] === null) delete watchLedger[code];
+    } else {
+      watchLedger[code] = { seconds: 0, duration: 0, watchedAt: Date.now(), method: "manual" };
+    }
+    saveWatchLedger();
+    syncGuideProgress(code);
+    renderList();
+    return;
+  }
+  const recording = e.target.closest(".recording-open");
+  if (recording) { openRecording(recording.dataset.code); return; }
+  const cell = e.target.closest(".sk-cell[role=button]");
+  if (cell) {
+    const sub = { field: "intersection", rowField: cell.dataset.rowField, track: cell.dataset.track, rightField: cell.dataset.rightField, rightValues: JSON.parse(cell.dataset.rightValues) };
+    const active = st.sub?.field === "intersection" && st.sub.track === sub.track && st.sub.rightField === sub.rightField && st.sub.rightValues.length === sub.rightValues.length && st.sub.rightValues.every((value) => sub.rightValues.includes(value));
+    historyMode = false;
+    return set({ sub: active ? null : sub });
+  }
+});
+document.addEventListener("keydown", (e) => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches(".sk-cell, .kg-node")) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent("click", { bubbles: true })); }
+});
+$("kg-topic").addEventListener("change", e => pickGraph({gTopic:e.target.value,gSub:"",peer:""}));
+$("kg-sub").addEventListener("change", e => pickGraph({gSub:e.target.value,peer:""}));
+$("kg-peer").addEventListener("change", e => pickGraph({peer:e.target.value}));
+$("q").addEventListener("input", (e) => { query = e.target.value; rowLimit = 150; renderList(); if (st.view === "graph") writeHash(); });
+$("rec").addEventListener("change", (e) => { recOnly = e.target.checked; rowLimit = 150; renderList(); if (st.view === "graph") writeHash(); });
+$("source").addEventListener("change", (e) => {
+  historyMode = false;
+  set({ source: e.target.value, year: "", tab: "learning", selection: null, sub: null });
+});
+$("year").addEventListener("change", (e) => set({ year: e.target.value, sub: null }));
+$("review-only").addEventListener("change", (e) => {
+  reviewOnly = e.target.checked;
+  historyMode = false;
+  set({ tab: "learning", selection: null, sub: null });
+});
+
+function main() {
+  $("guide").innerHTML = [...guides.values()].map((g) => `<section class="audience-section" aria-labelledby="name-${esc(g.id)}">
+    <h3><button type="button" class="guide-toggle" id="toggle-${esc(g.id)}" data-guide="${esc(g.id)}" aria-expanded="false" aria-controls="panel-${esc(g.id)}">
+      <strong id="name-${esc(g.id)}">${esc(g.audience)}</strong><span class="purpose">${esc(g.title)}</span>
+      <span class="stats">${g.chapters.reduce((n, c) => n + c.picks.length, 0)} recordings</span></button></h3>
+    <div class="guide-panel" id="panel-${esc(g.id)}" hidden></div></section>`).join("");
+  $("totals").textContent = `${D.sessions.length.toLocaleString("en-GB")} sessions · 2 sources · snapshot ${A.generated}`;
+  $("catalog").href = D.catalog;
+  $("coverage").textContent = `Universe: ${U.sessions.length} catalog sessions (${U.generated}). AI Engineer: ${A.coverage.included} included from ${A.coverage.uploads} uploads and ${A.coverage.streams} streams (${A.generated}); ${A.coverage.excluded} excluded. ${A.coverage.playlistsFetched}/${A.coverage.playlistsDiscovered} publisher playlists checked; ${A.coverage.descriptionsFetched} video descriptions collected. ${A.coverage.needsReview} topic matches need review. ${A.coverage.descriptionLimitation}`;
+  watchLedger = readWatchLedger();
+  route();
+  new ResizeObserver(renderTree).observe($("tree"));
+  matchMedia("(max-width:500px)").addEventListener("change", () => { if (st.view === "graph") renderList(); });
+  $("player-dialog").addEventListener("close", () => { currentVideoCode = null; previousVideoTime = null; if (player) player.stopVideo(); });
+  $("player-close").addEventListener("click", () => $("player-dialog").close());
+  setInterval(trackPlayback, 1000);
+  addEventListener("hashchange", route);
+}
+main();
+</script>
+</body>
+</html>
